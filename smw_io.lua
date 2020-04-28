@@ -549,5 +549,4 @@ function smw_io.debug_sprites()
             smw_io.debug_sprite(sprite)
         end
     end
-    smw_io.debug(6)
 end

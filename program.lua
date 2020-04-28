@@ -3,20 +3,20 @@ require "population"
 require "neuralnet"
 require "smw_io"
 
-local MOVEMENT_TIMEOUT      = 30 * 5
-local PROGRESS_TIMEOUT      = 30 * 20
+local MOVEMENT_TIMEOUT      = 30 * 15
+local PROGRESS_TIMEOUT      = 30 * 30
 
 local SAVE_STATES           = { 1 }
 
 local INPUT_RADIUS          = 6
 
-local POPULATION_SIZE       = 20
+local POPULATION_SIZE       = 30
 
 local BUTTONS               = { "A", "B", "X", "Y", "right", "left", "down", "up" }
 
 local NUM_INPUTS            = smw_io.get_num_inputs(INPUT_RADIUS) + 1
 local NUM_OUTPUTS           = #BUTTONS
-local LAYER_SIZES           = { NUM_INPUTS, 16, 12, NUM_OUTPUTS }
+local LAYER_SIZES           = { NUM_INPUTS, 16, 8, NUM_OUTPUTS }
 local NUM_WEIGHTS           = neuralnet.get_num_weights(LAYER_SIZES)
 
 local current_population    = population.new(POPULATION_SIZE, NUM_WEIGHTS)
@@ -35,6 +35,8 @@ local start_mx              = 0
 local start_my              = 0
 local mx                    = 0
 local my                    = 0
+
+local global_max_fitness    = 0
 
 local function initialize_next_test()
 
@@ -79,7 +81,8 @@ end
 
 local function complete_test()
 
-    local fitness = math.sqrt(max_mx - start_mx)
+    local fitness = max_mx - start_mx
+
     --if max_mx >= math.sqrt(5000) then
     --    fitness = fitness + smw_io.get_timer()
     --end
@@ -88,13 +91,18 @@ local function complete_test()
         current_population.get_genome(current_genome_index).fitness + fitness
 
     if current_state_index == #SAVE_STATES then
-        print("completed "..current_genome_index..", fitness: "..current_population.get_genome(current_genome_index).fitness)
+        -- Update global max fitness
+        global_max_fitness = math.max(math.floor(current_population.get_genome(current_genome_index).fitness), global_max_fitness)
     end
 
     initialize_next_test()
 end
 
 local function update()
+
+    gui.text(2, 215, "GEN: "..current_population.get_generation().." - GENOME "..current_genome_index.."/"
+        ..POPULATION_SIZE.." - MAX FIT: "..global_max_fitness)
+
     mx, my = smw_io.get_mario_pos()
 
     local inputs = smw_io.get_inputs(INPUT_RADIUS)
@@ -106,7 +114,7 @@ local function update()
     for i = 1, #outputs do
         if outputs[i] > 0.5 then
             buttons_pressed[BUTTONS[i]] = true
-            gui.text(2, 64 + i * 8, BUTTONS[i])
+            gui.text(2, 64 + i * 8, string.upper(BUTTONS[i]))
         end
     end
     joypad.set(1, buttons_pressed)
@@ -144,7 +152,7 @@ end
 initialize_next_test()
 while true do
     smw_io.debug(INPUT_RADIUS)
-    smw_io.debug_sprites()
+    --smw_io.debug_sprites()
     update()
     emu.frameadvance()
 end

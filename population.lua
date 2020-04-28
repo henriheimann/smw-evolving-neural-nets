@@ -15,10 +15,10 @@ function population.new(size, genome_length)
     self.avg_fitness = 0
     self.total_fitness = 0
 
-    self.num_elites = 4
+    self.num_elites = 2
     self.cross_rate = 0.7
-    self.mut_rate = 0.1
-    self.mut_max = 0.3
+    self.mut_rate = 0.2
+    self.mut_max = 0.5
 
     -- "tournament" or "roulette"
     self.selection = "roulette"
@@ -119,10 +119,7 @@ function population.new(size, genome_length)
     end
 
     function self.tostring()
-        print("generation", generation);
-        print("max_fitness", self.max_fitness)
-        print("min_fitness", self.min_fitness)
-        print("avg_fitness", self.avg_fitness)
+        return "generation: "..generation.." max: "..self.max_fitness.." avg: "..self.avg_fitness;
     end
 
     function self.get_best_genome()
